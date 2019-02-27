@@ -105,6 +105,19 @@ class Login(Resource):
 # User Class
 
 class User(Resource):
+
+	def get(self, uname=None):
+		if(uname):
+			return "", 405
+		user_info = mongo.db.user.find({}, {"_id": 0, "update_time": 0})
+		if(user_info == []):
+			return "No Users", 204
+		user_list = []
+		for user in user_info:
+			user_list.append(user["username"])
+		return user_list, 200
+
+
 	
 	def post(self, uname=None):
 		if(uname):
