@@ -1,3 +1,8 @@
+.error{
+    color: red !important;
+    text-align: center !important;
+}
+
 @font-face {
    font-family: paperdaisy;
     src: url("fonts/paperdaisy.ttf");
@@ -196,5 +201,8 @@
     label{
       font-family: dreams;
     }
+
+
+
 
 	
