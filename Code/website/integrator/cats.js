@@ -2,7 +2,7 @@ var corsURL = ""
 corsURL = "https://cors-anywhere.herokuapp.com/"
 
 //var url = "http://127.0.0.1:5000";  //Local Running
-var url = "http://3.209.1.133";  //AWS Running
+var url = "http://3.209.1.133:8000";  //AWS Running
 
 url = corsURL + url 
 
