@@ -9,6 +9,7 @@ url = corsURL + url
 function addCat(){
     var cUrl = url + "/api/v1/categories";
     var catName = document.getElementById("catName").value;
+    var error = document.getElementById("addError");
     var data = [catName];
     var json = JSON.stringify(data);
     console.log(data)
@@ -27,7 +28,7 @@ function addCat(){
         console.log("Im here")
         window.location.href = "homepage.html";
       } else if(xhttp.readyState == 4) {
-        alert(users);
+        error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
       }
 
     }
@@ -38,18 +39,15 @@ function pCat(){
   var cUrl = url + "/api/v1/categories";
   var xhttp = new XMLHttpRequest();
   xhttp.open("GET", cUrl, true);
+  var error = document.getElementById("printError");
 
   xhttp.onreadystatechange = function () {
 
-      if (xhttp.readyState == 4){
-        //console.log(xhttp.responseText)
-        var users = xhttp.responseText;
-        users = JSON.parse(users)
-        console.log(users)
-      }
-
       if (xhttp.readyState == 4 && xhttp.status == "200") {
 
+            var users = xhttp.responseText;
+            users = JSON.parse(users)
+            console.log(users)
             
             var arr = [];
 
@@ -84,7 +82,7 @@ function pCat(){
 
 
       else if(xhttp.readyState == 4) {
-        alert(users);
+        error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
       }
 
     }
@@ -96,6 +94,7 @@ function pCat(){
 function delCat(){
 
     var catName = document.getElementById("delCat").value;
+    var error = document.getElementById("deleteError");
     var cUrl = url + "/api/v1/categories/" + catName;
     var xhttp = new XMLHttpRequest()
     xhttp.open("DELETE", cUrl, true);
@@ -110,7 +109,7 @@ function delCat(){
         console.log("Im here")
         window.location.href = "homepage.html";
       } else if(xhttp.readyState == 4) {
-        alert(users);
+        error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
       }
 
     }

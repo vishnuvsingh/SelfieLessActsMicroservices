@@ -45,6 +45,7 @@ function upvote(e){
 function delAct(){
 
     var actId = document.getElementById("delName").value;
+    var error = document.getElementById("deleteError");
     var cUrl = url + "/api/v1/acts/" + actId;
     var xhttp = new XMLHttpRequest()
     xhttp.open("DELETE", cUrl, true);
@@ -58,7 +59,7 @@ function delAct(){
       if (xhttp.readyState == 4 && xhttp.status == "200") {
         window.location.reload()
       } else if(xhttp.readyState == 4) {
-        alert(users);
+        error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
       }
 
     }
@@ -67,7 +68,7 @@ function delAct(){
 }
 
 function upload(){
-
+      var error = document.getElementById("uploadError");
       cUrl = url + "/api/v1/acts";
       var xhttp = new XMLHttpRequest();
       xhttp.open("POST", cUrl, true);
@@ -108,7 +109,7 @@ function upload(){
             console.log("Im here")
             window.location.reload()
           } else if(xhttp.readyState == 4) {
-            alert(users);
+            error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
           }
 
       }
@@ -130,7 +131,7 @@ function previewFile() {
 }
 
 function loadActs(){
-
+    var error = document.getElementById("printError");
     var query = window.location.search.substring(1);
     var qs = parse_query_string(query);
     cname = qs["cname"];
@@ -143,14 +144,9 @@ function loadActs(){
 
     xhttp.onreadystatechange = function () {
 
-
-        if (xhttp.readyState == 4){
-          var list = xhttp.responseText;
-          list = JSON.parse(list)
-        }
-
         if (xhttp.readyState == 4 && xhttp.status == "200") {
-
+            var list = xhttp.responseText;
+            list = JSON.parse(list)
             for(var i=0;i<list.length;i++){
 
                 currDict = list[i]
@@ -214,7 +210,7 @@ function loadActs(){
         }
 
         else if(xhttp.readyState == 4) {
-          alert(list);
+          error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
         }
 
        

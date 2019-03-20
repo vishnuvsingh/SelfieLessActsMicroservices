@@ -44,6 +44,9 @@
 
   	<h2 style="text-align:center;color:rgba(0,191,255,0.8)">Login<span onclick="document.getElementById('id01').style.display='none'" class="close1" title="Close Modal">&times;</span></h2>
 
+      <h5 id="loginError" class="error"></h5>
+      <br/><br/><br/>
+
       <label><b>Username*</b></label>
       <input id="luname" type="text" placeholder="Enter Username" name="unamel" required>
 
@@ -72,6 +75,9 @@
   	   
        <h2 style="text-align:center;color:rgba(0,191,255,0.8)">Sign Up<span onclick="document.getElementById('id02').style.display='none'" class="close1" title="Close Modal">&times;</span></h2>
   	  
+        <h5 id="signError" class="error"></h5>
+        <br/><br/><br/>
+
         <label><b>Username*</b></label>
         
         <input id="uname" type="text" placeholder="Enter username" name="uname" required>
@@ -101,7 +107,8 @@
 
   	<h2 style="text-align:center;color:rgba(0,191,255,0.8)">Delete User<span onclick="document.getElementById('id03').style.display='none'" class="close1" title="Close Modal">&times;</span></h2>
 
-
+    <h5 id="deleteError" class="error"></h5>
+      <br/><br/><br/>
    <label><b>Username you wish to delete</b></label>
 
     <input type="text" id="delUname" placeholder="Enter Username" name="uname" required>

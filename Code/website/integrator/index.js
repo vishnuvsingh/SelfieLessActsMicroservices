@@ -13,6 +13,7 @@ function login(){
     var cUrl = url + "/api/v1/login";
     var username = document.getElementById("luname").value;
     var password = document.getElementById("lpwd").value;
+    var error = document.getElementById("loginError");
     var encodePass = SHA1(password)
     var data = {"username":username,"password":encodePass};
     var json = JSON.stringify(data);
@@ -33,7 +34,7 @@ function login(){
         } 
 
         else if(xhttp.readyState == 4) {
-          alert(users);
+          error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
         }
 
     }
@@ -46,6 +47,7 @@ function add() {
     var cUrl = url + "/api/v1/users";
     var username = document.getElementById("uname").value;
     var password = document.getElementById("pwd").value;
+    var error = document.getElementById("signError");
     var encodePass = SHA1(password)
     var data = {"username":username,"password":encodePass};
     console.log(data)
@@ -69,7 +71,7 @@ function add() {
         } 
 
         else if(xhttp.readyState == 4) {
-          alert(users);
+          error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
         }
 
     }
@@ -80,6 +82,7 @@ function add() {
 //Delete User
 function del() {
     var username = document.getElementById("delUname").value;
+    var error = document.getElementById("deleteError");
     var cUrl = url + "/api/v1/users/" + username;
     var xhttp = new XMLHttpRequest()
     xhttp.open("DELETE", cUrl, true);
@@ -97,7 +100,7 @@ function del() {
         } 
         
         else if(xhttp.readyState == 4) {
-          alert(users);
+          error.innerHTML = xhttp.status + " : " + xhttp.statusText + " : " + xhttp.responseText;
         }
 
     }
