@@ -42,7 +42,7 @@ ENV TEAM_ID CC_172_450_451_478
 COPY ./app /app
 WORKDIR /app
 
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisor"]
 
 
 
