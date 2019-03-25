@@ -55,12 +55,16 @@ def stripList(l, lLimit, uLimit):
 		data.append(l[i])
 	return data
 
+def incrementHTTP():
+	mongo.db.http.insert_one({'http': 1})
+
 
 # Category Class
 
 class Cats(Resource):
 
 	def get(self, cname=None):
+		incrementHTTP()
 		if(cname):
 			return "", 405
 		cursor = mongo.db.cats.find({}, {"_id": 0, "update_time": 0})
@@ -75,6 +79,7 @@ class Cats(Resource):
 				return data, 200
 
 	def post(self, cname=None):
+		incrementHTTP()
 		if(cname):
 			return "", 405
 		data = request.get_json()
@@ -93,12 +98,14 @@ class Cats(Resource):
 				return {}, 201
 
 	def delete(self,cname=None):
+		incrementHTTP()
 		if(cname):
 			x = mongo.db.cats.distinct(cname)
 			if(x==[]):
 				return 'category not found', 405
 			else:
 				r = mongo.db.cats.remove({cname: x[0]})
+				r = mongo.db.acts.remove({"categoryName": cname})
 				return {}, 200
 		else:
 			return "category missing", 400
@@ -109,6 +116,7 @@ class Cats(Resource):
 class Acts(Resource):
 
 	def get(self, cname=None, actId=None):
+		incrementHTTP()
 
 		if(actId):
 			return "",405
@@ -170,6 +178,7 @@ class Acts(Resource):
 
 
 	def post(self, cname=None, actId=None):
+		incrementHTTP()
 
 		if(actId):
 			return "",405
@@ -232,6 +241,7 @@ class Acts(Resource):
 
 
 	def delete(self,actId=None,cname=None):
+		incrementHTTP()
 		if(cname):
 			return "",405
 		if(not(actId)):
@@ -254,6 +264,7 @@ class Acts(Resource):
 class numberActs(Resource):
 
 	def get(self,cname):
+		incrementHTTP()
 		temp = mongo.db.cats.distinct(cname)
 		if(temp == []):
 			return "Category Name does not exist", 405
@@ -269,6 +280,7 @@ class numberActs(Resource):
 class upvote(Resource):
 
 	def post(self):
+		incrementHTTP()
 		data = request.get_json()
 		try:
 			actId = data[0]
@@ -286,7 +298,28 @@ class upvote(Resource):
 		mongo.db.acts.insert_one(d)
 		return {}, 200
 
+class actCount(Resource):
 
+	def get(self):
+		incrementHTTP()
+		count = mongo.db.acts.count()
+		if(count>=0):
+			return [count], 200
+		else:
+			return "Method not Allowed", 405
+
+class httpCount(Resource):
+
+	def get(self):
+		count = mongo.db.http.count()
+		if(count>=0):
+			return [count], 200
+		else:
+			return "Method not Allowed", 405
+
+	def delete(self):
+		r = mongo.db.http.drop()
+		return {}, 200
 
 # Resources for Categories
 
@@ -303,6 +336,11 @@ api.add_resource(Acts,"/api/v1/acts",endpoint="addAct")
 
 api.add_resource(numberActs,"/api/v1/categories/<string:cname>/acts/size",endpoint="noActs")
 api.add_resource(upvote,"/api/v1/acts/upvote",endpoint="upvote")
+api.add_resource(actCount,"/api/v1/acts/count",endpoint="actcount")
+
+#HTTP Resource
+
+api.add_resource(httpCount,"/api/v1/_count",endpoint="httpcount")
 
 
 # Run the App
