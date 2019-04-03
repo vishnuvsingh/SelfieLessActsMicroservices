@@ -45,12 +45,16 @@ def checkSHA1(password):
     else:
         return False
 
+def incrementHTTP():
+	mongo.db.http.insert_one({'http': 1})
+
 
 #Login Class
 
 class Login(Resource):
 
 	def post(self):
+		incrementHTTP()
 		data = request.get_json()
 
 		if(not(data)):
@@ -81,6 +85,7 @@ class Login(Resource):
 class User(Resource):
 
 	def get(self, uname=None):
+		incrementHTTP()
 		if(uname):
 			return "", 405
 		user_info = mongo.db.user.find({}, {"_id": 0, "update_time": 0})
@@ -94,6 +99,7 @@ class User(Resource):
 
 	
 	def post(self, uname=None):
+		incrementHTTP()
 		if(uname):
 			return "", 405
 		data = request.get_json()
@@ -118,18 +124,33 @@ class User(Resource):
 		        
 
 	def delete(self, uname=None):
-	    data = []
-	    if(uname):
-	        user_info = mongo.db.user.find({"username": uname})
-	        data = convertCursor(user_info)
-	        if(data==[]):
-	            return 'user not found', 405
-	        else:
-	            data = strip(data)
-	            r = mongo.db.user.remove({"username": uname})
-	            return {}, 200
-	    else:
-	        return "username missing", 400
+		incrementHTTP()
+		data = []
+		if(uname):
+			user_info = mongo.db.user.find({"username": uname})
+			data = convertCursor(user_info)
+			if(data==[]):
+			    return 'user not found', 405
+			else:
+			    data = strip(data)
+			    r = mongo.db.user.remove({"username": uname})
+			    return {}, 200
+		else:
+			return "username missing", 400
+
+
+class httpCount(Resource):
+
+	def get(self):
+		count = mongo.db.http.count()
+		if(count>=0):
+			return [count], 200
+		else:
+			return "Method not Allowed", 405
+
+	def delete(self):
+		r = mongo.db.http.drop()
+		return {}, 200
 
 
 
@@ -140,6 +161,10 @@ api.add_resource(Login, "/api/v1/login", endpoint="login")
 
 api.add_resource(User, "/api/v1/users", endpoint="add user")
 api.add_resource(User, "/api/v1/users/<string:uname>", endpoint="delete")
+
+#HTTP Resource
+
+api.add_resource(httpCount,"/api/v1/_count",endpoint="httpcount")
 
 
 
