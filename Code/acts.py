@@ -211,7 +211,8 @@ class Acts(Resource):
 
 		#cursor = mongo.db.user.find({"username": username})
 		#temp = convertCursor(cursor)
-		r = requests.get("http://3.209.1.133:8080/api/v1/users")
+		headers = {"Origin": "http://3.209.213.217/"}
+		r = requests.get("http://34.224.193.114/api/v1/users", headers = headers)
 		temp = False
 		if(r.status_code == 200):
 			j = r.json()
