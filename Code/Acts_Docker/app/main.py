@@ -30,10 +30,10 @@ mongo = PyMongo(app)
 
 
 def convertCursor(info):
-    data = []
-    for x in info:
-        data.append(x)
-    return data	
+	data = []
+	for x in info:
+		data.append(x)
+	return data 
 
 def mergeDicts(dicts):
 	data = {}
@@ -42,11 +42,11 @@ def mergeDicts(dicts):
 	return data
 
 def isBase64(s):
-    pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
-    if not s or len(s) < 1:
-        return False
-    else:
-        return pattern.match(s)
+	pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
+	if not s or len(s) < 1:
+		return False
+	else:
+		return pattern.match(s)
 
 def stripList(l, lLimit, uLimit):
 	l.reverse()
@@ -322,6 +322,112 @@ class httpCount(Resource):
 		r = mongo.db.http.drop()
 		return {}, 200
 
+
+class health(Resource):
+
+	def get(self):
+		url = "http://cc-lb-1316322456.us-east-1.elb.amazonaws.com"
+
+		#add user
+		headers = {"Origin": "http://3.209.213.217/"}
+		'''
+		data = json.dumps({"username":"asd","password":"ac44ef50fd7e488ad5b1b14b3cdecdc2e2605d1c"})
+		r = requests.post(url+"/api/v1/users",data = data)
+		if(r.status_code!=201):
+			return "",500
+		'''
+
+		#list users
+		r = requests.get(url+"/api/v1/users",headers=headers)
+		if(r.status_code!=200 and r.status_code!=204):
+			return "",501
+
+		#add category
+		'''
+		data = json.dumps(["asd"])
+		r = requests.post(url+"/api/v1/categories",data,headers=headers)
+		if(r.status_code!=201):
+			return "add category api",500
+		'''
+
+		#list categories
+		r = requests.get(url+"/api/v1/categories",headers=headers)
+		if(r.status_code!=200 and r.status_code!=204):
+			return "",500
+
+		if(r.status_code==204):
+			return "",200
+
+		#get all category names
+		cat = r.text
+		cat = json.loads(cat)
+		cat = list(cat.keys())
+
+		for name in cat:
+			#upload an act
+			'''
+			data = json.dumps({
+					"actId": 123456,
+					"username": "asd",
+					"timestamp": "31-12-1998:59-59-11",
+					"caption": "test",
+					"categoryName": name,
+					"imgB64": "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
+				})
+			r = requests.post(url+"/api/v1/acts",data,headers=headers)
+			if(r.status_code!=201):
+				return "",500
+			'''
+
+			#list acts
+			r = requests.get(url+"/api/v1/categories/"+name+"/acts",headers=headers)
+			if(r.status_code!=200 and r.status_code!=204):
+				return "",500
+
+			#list number of acts
+			r = requests.get(url+"/api/v1/categories/"+name+"/acts/size",headers=headers)
+			if(r.status_code!=200 and r.status_code!=204):
+				return "",500
+
+			'''
+			#upvote an act
+			data = json.dumps([123456])
+			r = requests.post(url+"/api/v1/acts/upvote",data,headers=headers)
+			if(r.status_code!=200):
+				return "",500
+			'''
+
+			#remove an act
+			'''
+			r = requests.delete(url+"/api/v1/acts/123456",headers=headers)
+			if(r.status_code!=200):
+				return "",500
+			'''
+
+		#acts count
+		r = requests.get(url+"/api/v1/acts/count",headers=headers)
+		if(r.status_code!=200 and r.status_code!=204):
+			return "",500
+
+		#delete a category
+		'''
+		r = requests.delete(url+"/api/v1/categories/asd", headers=headers)
+		if(r.status_code!=200):
+			return "",500
+		'''
+
+		#delete username
+		'''
+		r = requests.delete(url+'/api/v1/users/asd',headers=headers)
+		if(r.status_code!=200):
+			return "",500
+		'''
+
+		return "",200
+
+
+
+
 # Resources for Categories
 
 api.add_resource(Cats, "/api/v1/categories", endpoint="nocname")
@@ -343,12 +449,15 @@ api.add_resource(actCount,"/api/v1/acts/count",endpoint="actcount")
 
 api.add_resource(httpCount,"/api/v1/_count",endpoint="httpcount")
 
+#Health Check and Crash
+api.add_resource(health,"/api/v1/_health",endpoint="health")
+
 
 # Run the App
 if __name__ == "__main__":
-    app.secret_key = 'super secret key'
-    app.config['SESSION_TYPE'] = 'mongodb'
+	app.secret_key = 'super secret key'
+	app.config['SESSION_TYPE'] = 'mongodb'
 
-    sess.init_app(app)
+	sess.init_app(app)
 
-    app.run(debug=True)
+	app.run(debug=True)
