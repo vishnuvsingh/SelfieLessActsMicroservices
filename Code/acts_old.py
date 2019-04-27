@@ -24,16 +24,16 @@ sess = Session()
 app.config["MONGO_URI"] = "mongodb://localhost:27017/cc_db"
 mongo = PyMongo(app)
 
-crash = False
+
 
 # Functions
 
 
 def convertCursor(info):
-    data = []
-    for x in info:
-        data.append(x)
-    return data	
+	data = []
+	for x in info:
+		data.append(x)
+	return data 
 
 def mergeDicts(dicts):
 	data = {}
@@ -42,11 +42,11 @@ def mergeDicts(dicts):
 	return data
 
 def isBase64(s):
-    pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
-    if not s or len(s) < 1:
-        return False
-    else:
-        return pattern.match(s)
+	pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
+	if not s or len(s) < 1:
+		return False
+	else:
+		return pattern.match(s)
 
 def stripList(l, lLimit, uLimit):
 	l.reverse()
@@ -65,8 +65,6 @@ class Cats(Resource):
 
 	def get(self, cname=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		if(cname):
 			return "", 405
 		cursor = mongo.db.cats.find({}, {"_id": 0, "update_time": 0})
@@ -78,12 +76,10 @@ class Cats(Resource):
 				return "There are no Categories", 204
 			else:
 				data = mergeDicts(data)
-				return data, 200		
+				return data, 200
 
 	def post(self, cname=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		if(cname):
 			return "", 405
 		data = request.get_json()
@@ -103,8 +99,6 @@ class Cats(Resource):
 
 	def delete(self,cname=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		if(cname):
 			x = mongo.db.cats.distinct(cname)
 			if(x==[]):
@@ -123,8 +117,7 @@ class Acts(Resource):
 
 	def get(self, cname=None, actId=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
+
 		if(actId):
 			return "",405
 
@@ -186,8 +179,7 @@ class Acts(Resource):
 
 	def post(self, cname=None, actId=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
+
 		if(actId):
 			return "",405
 
@@ -251,8 +243,6 @@ class Acts(Resource):
 
 	def delete(self,actId=None,cname=None):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		if(cname):
 			return "",405
 		if(not(actId)):
@@ -276,8 +266,6 @@ class numberActs(Resource):
 
 	def get(self,cname):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		temp = mongo.db.cats.distinct(cname)
 		if(temp == []):
 			return "Category Name does not exist", 405
@@ -294,8 +282,6 @@ class upvote(Resource):
 
 	def post(self):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		data = request.get_json()
 		try:
 			actId = data[0]
@@ -317,8 +303,6 @@ class actCount(Resource):
 
 	def get(self):
 		incrementHTTP()
-		if(crash==True):
-			return "", 500
 		count = mongo.db.acts.count()
 		if(count>=0):
 			return [count], 200
@@ -328,8 +312,6 @@ class actCount(Resource):
 class httpCount(Resource):
 
 	def get(self):
-		if(crash==True):
-			return "", 500
 		count = mongo.db.http.count()
 		if(count>=0):
 			return [count], 200
@@ -337,27 +319,13 @@ class httpCount(Resource):
 			return "Method not Allowed", 405
 
 	def delete(self):
-		if(crash==True):
-			return "", 500
 		r = mongo.db.http.drop()
 		return {}, 200
 
+
 class health(Resource):
 
-	def post(self):
-		global crash
-		if(crash==True):
-			return "", 500
-		crash = True
-		return "", 200
-
-	def delete(self):
-		crash=False
-		return "",200
-
 	def get(self):
-		if(crash==True):
-			return "",500
 		url = "http://cc-lb-1316322456.us-east-1.elb.amazonaws.com"
 
 		#add user
@@ -459,6 +427,7 @@ class health(Resource):
 
 
 
+
 # Resources for Categories
 
 api.add_resource(Cats, "/api/v1/categories", endpoint="nocname")
@@ -480,15 +449,15 @@ api.add_resource(actCount,"/api/v1/acts/count",endpoint="actcount")
 
 api.add_resource(httpCount,"/api/v1/_count",endpoint="httpcount")
 
-# Resources for Health
-api.add_resource(health,"/api/v1/_crash",endpoint="crash")
+#Health Check and Crash
 api.add_resource(health,"/api/v1/_health",endpoint="health")
+
 
 # Run the App
 if __name__ == "__main__":
-    app.secret_key = 'super secret key'
-    app.config['SESSION_TYPE'] = 'mongodb'
+	app.secret_key = 'super secret key'
+	app.config['SESSION_TYPE'] = 'mongodb'
 
-    sess.init_app(app)
+	sess.init_app(app)
 
-    app.run(debug=True)
+	app.run(debug=True)
