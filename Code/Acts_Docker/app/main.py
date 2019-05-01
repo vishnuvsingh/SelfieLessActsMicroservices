@@ -1,6 +1,6 @@
 #Library Imports
 
-from flask import Flask, request, session, Response
+from flask import Flask, request, session, Response, redirect
 from flask_restful import Api, Resource
 from flask_pymongo import PyMongo
 from flask_session import Session
@@ -18,22 +18,23 @@ app = Flask(__name__)
 api = Api(app)
 
 #Session Setup
-sess = Session()
+#sess = Session()
 
 #MongoDB Setup
-app.config["MONGO_URI"] = "mongodb://localhost:27017/cc_db"
+app.config["MONGO_URI"] = "mongodb://3.209.213.217:27017/cc_db"
 mongo = PyMongo(app)
+#mongo = pymongo.MongoClient("mongodb://acts:avengers2@3.209.213.217:27017/cc_db")
 
-
+crash = False
 
 # Functions
 
 
 def convertCursor(info):
-	data = []
-	for x in info:
-		data.append(x)
-	return data 
+    data = []
+    for x in info:
+        data.append(x)
+    return data	
 
 def mergeDicts(dicts):
 	data = {}
@@ -42,11 +43,11 @@ def mergeDicts(dicts):
 	return data
 
 def isBase64(s):
-	pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
-	if not s or len(s) < 1:
-		return False
-	else:
-		return pattern.match(s)
+    pattern = re.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$")
+    if not s or len(s) < 1:
+        return False
+    else:
+        return pattern.match(s)
 
 def stripList(l, lLimit, uLimit):
 	l.reverse()
@@ -65,6 +66,8 @@ class Cats(Resource):
 
 	def get(self, cname=None):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		if(cname):
 			return "", 405
 		cursor = mongo.db.cats.find({}, {"_id": 0, "update_time": 0})
@@ -76,29 +79,32 @@ class Cats(Resource):
 				return "There are no Categories", 204
 			else:
 				data = mergeDicts(data)
-				return data, 200
+				return data, 200		
 
 	def post(self, cname=None):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		if(cname):
 			return "", 405
 		data = request.get_json()
 		if(not(data)):
 			return "ERROR", 400
+		cname = data[0]
+		if(cname=="" or cname==" "):
+			return "Enter a Category Name", 400
+		x = mongo.db.cats.distinct(cname)
+		print(x)
+		if(x!=[]):
+			return "category already exists.", 405
 		else:
-			cname = data[0]
-			if(cname=="" or cname==" "):
-				return "Enter a Category Name", 400
-			x = mongo.db.cats.distinct(cname)
-			print(x)
-			if(x!=[]):
-				return "category already exists.", 405
-			else:
-				mongo.db.cats.insert_one({cname:0})
-				return {}, 201
+			mongo.db.cats.insert_one({cname:0})
+			return {}, 201
 
 	def delete(self,cname=None):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		if(cname):
 			x = mongo.db.cats.distinct(cname)
 			if(x==[]):
@@ -117,7 +123,8 @@ class Acts(Resource):
 
 	def get(self, cname=None, actId=None):
 		incrementHTTP()
-
+		if(crash==True):
+			return "", 500
 		if(actId):
 			return "",405
 
@@ -179,7 +186,8 @@ class Acts(Resource):
 
 	def post(self, cname=None, actId=None):
 		incrementHTTP()
-
+		if(crash==True):
+			return "", 500
 		if(actId):
 			return "",405
 
@@ -222,8 +230,8 @@ class Acts(Resource):
 		if(not(temp)):
 			return "User does not exist", 405
 
-		if(not(isBase64(imgB64))):
-			return "Image not encoded", 400
+		#if(not(isBase64(imgB64))):
+			#return "Image not encoded", 400
 
 		try:
 			upvotes = data["upvotes"]
@@ -243,6 +251,8 @@ class Acts(Resource):
 
 	def delete(self,actId=None,cname=None):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		if(cname):
 			return "",405
 		if(not(actId)):
@@ -266,6 +276,8 @@ class numberActs(Resource):
 
 	def get(self,cname):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		temp = mongo.db.cats.distinct(cname)
 		if(temp == []):
 			return "Category Name does not exist", 405
@@ -282,6 +294,8 @@ class upvote(Resource):
 
 	def post(self):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		data = request.get_json()
 		try:
 			actId = data[0]
@@ -303,6 +317,8 @@ class actCount(Resource):
 
 	def get(self):
 		incrementHTTP()
+		if(crash==True):
+			return "", 500
 		count = mongo.db.acts.count()
 		if(count>=0):
 			return [count], 200
@@ -312,6 +328,8 @@ class actCount(Resource):
 class httpCount(Resource):
 
 	def get(self):
+		if(crash==True):
+			return "", 500
 		count = mongo.db.http.count()
 		if(count>=0):
 			return [count], 200
@@ -319,111 +337,52 @@ class httpCount(Resource):
 			return "Method not Allowed", 405
 
 	def delete(self):
+		if(crash==True):
+			return "", 500
 		r = mongo.db.http.drop()
 		return {}, 200
 
-
 class health(Resource):
 
-	def get(self):
-		url = "http://cc-lb-1316322456.us-east-1.elb.amazonaws.com"
+	def post(self):
+		global crash
+		if(crash==True):
+			return "", 500
+		crash = True
+		return "", 200
 
-		#add user
-		headers = {"Origin": "http://3.209.213.217/"}
-		'''
-		data = json.dumps({"username":"asd","password":"ac44ef50fd7e488ad5b1b14b3cdecdc2e2605d1c"})
-		r = requests.post(url+"/api/v1/users",data = data)
-		if(r.status_code!=201):
-			return "",500
-		'''
-
-		#list users
-		r = requests.get(url+"/api/v1/users",headers=headers)
-		if(r.status_code!=200 and r.status_code!=204):
-			return "",501
-
-		#add category
-		'''
-		data = json.dumps(["asd"])
-		r = requests.post(url+"/api/v1/categories",data,headers=headers)
-		if(r.status_code!=201):
-			return "add category api",500
-		'''
-
-		#list categories
-		r = requests.get(url+"/api/v1/categories",headers=headers)
-		if(r.status_code!=200 and r.status_code!=204):
-			return "",500
-
-		if(r.status_code==204):
-			return "",200
-
-		#get all category names
-		cat = r.text
-		cat = json.loads(cat)
-		cat = list(cat.keys())
-
-		for name in cat:
-			#upload an act
-			'''
-			data = json.dumps({
-					"actId": 123456,
-					"username": "asd",
-					"timestamp": "31-12-1998:59-59-11",
-					"caption": "test",
-					"categoryName": name,
-					"imgB64": "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
-				})
-			r = requests.post(url+"/api/v1/acts",data,headers=headers)
-			if(r.status_code!=201):
-				return "",500
-			'''
-
-			#list acts
-			r = requests.get(url+"/api/v1/categories/"+name+"/acts",headers=headers)
-			if(r.status_code!=200 and r.status_code!=204):
-				return "",500
-
-			#list number of acts
-			r = requests.get(url+"/api/v1/categories/"+name+"/acts/size",headers=headers)
-			if(r.status_code!=200 and r.status_code!=204):
-				return "",500
-
-			'''
-			#upvote an act
-			data = json.dumps([123456])
-			r = requests.post(url+"/api/v1/acts/upvote",data,headers=headers)
-			if(r.status_code!=200):
-				return "",500
-			'''
-
-			#remove an act
-			'''
-			r = requests.delete(url+"/api/v1/acts/123456",headers=headers)
-			if(r.status_code!=200):
-				return "",500
-			'''
-
-		#acts count
-		r = requests.get(url+"/api/v1/acts/count",headers=headers)
-		if(r.status_code!=200 and r.status_code!=204):
-			return "",500
-
-		#delete a category
-		'''
-		r = requests.delete(url+"/api/v1/categories/asd", headers=headers)
-		if(r.status_code!=200):
-			return "",500
-		'''
-
-		#delete username
-		'''
-		r = requests.delete(url+'/api/v1/users/asd',headers=headers)
-		if(r.status_code!=200):
-			return "",500
-		'''
-
+	def delete(self):
+		global crash
+		crash = False
 		return "",200
+
+	def get(self):
+		if(crash==True):
+			return "", 500
+		'''
+		rUrl = request.url
+		rUrl = rUrl.replace('http://','')
+		reg = ':([^:/]+)/'
+		res = re.search(reg,rUrl)
+		portNo = res.group(1)
+		qUrl = 'http://3.209.213.217:' + portNo + '/api/v1/categories'
+		print(qUrl)
+		r = requests.get(qUrl)
+		if(r.status_code==204 or r.status_code==200):
+			return "",200
+		else:
+			return r.text,500
+		'''
+		cursor = mongo.db.cats.find({}, {"_id": 0, "update_time": 0})
+		if(not(cursor)):
+			return "", 500
+		else:
+			data = convertCursor(cursor)
+			if(data == []):
+				return "", 200
+			else:
+				data = mergeDicts(data)
+				return "", 200 
 
 
 
@@ -449,15 +408,15 @@ api.add_resource(actCount,"/api/v1/acts/count",endpoint="actcount")
 
 api.add_resource(httpCount,"/api/v1/_count",endpoint="httpcount")
 
-#Health Check and Crash
+# Resources for Health
+api.add_resource(health,"/api/v1/_crash",endpoint="crash")
 api.add_resource(health,"/api/v1/_health",endpoint="health")
-
 
 # Run the App
 if __name__ == "__main__":
-	app.secret_key = 'super secret key'
-	app.config['SESSION_TYPE'] = 'mongodb'
+    app.secret_key = 'super secret key'
+    app.config['SESSION_TYPE'] = 'mongodb'
 
-	sess.init_app(app)
+    #sess.init_app(app)
 
-	app.run(debug=True)
+    app.run(debug=True)

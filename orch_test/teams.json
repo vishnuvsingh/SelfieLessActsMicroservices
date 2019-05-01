@@ -1,0 +1,8 @@
+{
+    "CC_172_450_451_478": {
+        "selfieless_ip": "cc-lb-1715675156.us-east-1.elb.amazonaws.com",
+        "acts_ip": "3.209.213.217",
+        "acts_username": "ubuntu",
+        "acts_private_key": "finalActs.pem"
+    }
+}
